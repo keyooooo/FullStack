@@ -1,13 +1,38 @@
+// 文字实验室的"输入区"卡片。这一节给"开始分析"接上了后端：
+// 点按钮就把输入的文字 POST 给 /api/analyze，拿到结果通过 onResult 交给父组件。
+// 请求出问题时用 try/catch 接住，在按钮上方给一行提示，不让界面无声失效。
+// 后端地址从 .env.local 的 VITE_API_BASE_URL 读；没配时退回 localhost:8000。
 import { useState } from "react";
 
-// 文字实验室的"输入区"卡片。
-// 这一节它多了一个"会变的值"：text——这就是 state。
-//   · text 是这个组件自己揣着的值，出生时带着一段默认文字；
-//   · 用户每打一个字、删一个字，text 就变；
-//   · text 一变，下面那行"已输入 N 字"当场跟着跳——
-//     你连一句"找到那个元素再去改它"都不用写，React 自己刷。
-export default function InputCard() {
-  const [text, setText] = useState("今天的风很轻，适合把脑海里的想法慢慢写下来。");
+const API = import.meta.env.VITE_API_BASE_URL;
+
+export default function InputCard({ onResult }) {
+  const [text, setText] = useState(
+    "今天的风很轻，适合把脑海里的想法慢慢写下来。",
+  );
+  const [error, setError] = useState("");
+
+  async function handleAnalyze() {
+    setError("");
+
+    try {
+      const res = await fetch(`${API}/api/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ text }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `分析失败：${res.status}`);
+      }
+
+      onResult(await res.json());
+    } catch (error) {
+      setError(error.message);
+    }
+  }
 
   return (
     <article className="panel panel-half lab-panel card">
@@ -26,8 +51,14 @@ export default function InputCard() {
         />
         {/* state 现身：text 一变，这行数字自动跟着变 */}
         <p className="lab-count">已输入 {text.length} 字</p>
-        {/* "开始分析"要真出结果，得等模块 5 接后端，这里先按兵不动 */}
-        <button className="primary-button" type="button">开始分析</button>
+        {error && <p className="lab-error">{error}</p>}
+        <button
+          className="primary-button"
+          type="button"
+          onClick={handleAnalyze}
+        >
+          开始分析
+        </button>
       </form>
     </article>
   );

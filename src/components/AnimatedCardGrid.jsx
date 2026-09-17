@@ -3,7 +3,7 @@ import { animate, stagger } from "animejs";
 
 // 用法：<AnimatedCardGrid className="dashboard-grid">… hero + 几张卡片 …</AnimatedCardGrid>
 // 同一份"卡片飞入"动画，写一次，到处用。
-// HomePage 和 TextLabPage 都把自己的 dashboard-grid 套在它里头，
+// HomeView 和 TextLabView 都把自己的 dashboard-grid 套在它里头，
 // 里面所有 .card（hero 不是 card，不动）都自动获得 stagger 弹性入场。
 export default function AnimatedCardGrid({ className, children }) {
   const ref = useRef(null);
